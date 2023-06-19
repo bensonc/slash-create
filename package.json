@@ -1,5 +1,5 @@
 {
-  "name": "slash-create",
+  "name": "@bensonc/slash-create",
   "version": "5.13.0",
   "description": "Create and sync Discord slash commands!",
   "main": "./lib/index.js",
