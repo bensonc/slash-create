@@ -241,8 +241,8 @@ export class SlashCommand<T = any> {
    */
   async throttle(userID: string): Promise<ThrottleObject | null> {
     if (!this.throttling) return null;
-
-    let throttle: ThrottleObject | null = await this._throttles.get(userID);
+    const key = `${this.commandName}:${userID}`;
+    let throttle: ThrottleObject | null = await this._throttles.get(key);
     if (!throttle) {
       throttle = {
         start: Date.now(),
