@@ -67,7 +67,7 @@ export class SlashCommand<T = any> {
   readonly creator: SlashCreator;
 
   /** Current throttle objects for the command, mapped by user ID. */
-  private _throttles = new Map<string, ThrottleObject>();
+  private _throttles;
 
   /**
    * @param creator The instantiating creator.
@@ -76,7 +76,7 @@ export class SlashCommand<T = any> {
   constructor(creator: SlashCreator, opts: SlashCommandOptions) {
     if (this.constructor.name === 'SlashCommand') throw new Error('The base SlashCommand cannot be instantiated.');
     this.creator = creator;
-
+    this._throttles = creator.throttle;
     if (!opts.unknown) SlashCommand.validateOptions(opts);
 
     this.type = opts.type || ApplicationCommandType.CHAT_INPUT;
@@ -245,19 +245,16 @@ export class SlashCommand<T = any> {
    * @param userID ID of the user to throttle for
    * @private
    */
-  throttle(userID: string): ThrottleObject | null {
+  async throttle(userID: string): Promise<ThrottleObject | null> {
     if (!this.throttling) return null;
-
-    let throttle = this._throttles.get(userID);
+    const key = `${this.commandName}:${userID}`;
+    let throttle: ThrottleObject | null = await this._throttles.get(key);
     if (!throttle) {
       throttle = {
         start: Date.now(),
-        usages: 0,
-        timeout: setTimeout(() => {
-          this._throttles.delete(userID);
-        }, this.throttling.duration * 1000)
+        usages: 0
       };
-      this._throttles.set(userID, throttle);
+      this._throttles.set(userID, throttle, this.throttling.duration * 1000);
     }
 
     return throttle;
@@ -427,5 +424,4 @@ export interface ThrottlingOptions {
 export interface ThrottleObject {
   start: number;
   usages: number;
-  timeout: any;
 }

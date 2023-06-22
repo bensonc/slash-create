@@ -1,5 +1,5 @@
 {
-  "name": "slash-create",
+  "name": "@bensonc/slash-create",
   "version": "5.13.0",
   "description": "Create and sync Discord slash commands!",
   "main": "./lib/index.js",
@@ -47,6 +47,7 @@
   },
   "dependencies": {
     "eventemitter3": "^5.0.0",
+    "keyv": "^4.5.2",
     "lodash.isequal": "^4.5.0",
     "tweetnacl": "^1.0.3"
   },

@@ -34,6 +34,7 @@ import { ComponentContext } from './structures/interfaces/componentContext';
 import { AutocompleteContext } from './structures/interfaces/autocompleteContext';
 import path from 'path';
 import { ModalInteractionContext } from './structures/interfaces/modalInteractionContext';
+import Keyv from 'keyv';
 
 /** The main class for using commands and interactions. */
 export class SlashCreator extends (EventEmitter as any as new () => TypedEventEmitter<SlashCreatorEvents>) {
@@ -54,6 +55,8 @@ export class SlashCreator extends (EventEmitter as any as new () => TypedEventEm
   server?: Server;
   /** The client being passed to this creator */
   client?: any;
+  /** The keyv being passed to this creator */
+  throttle: Keyv;
   /** The formatted allowed mentions from the options */
   readonly allowedMentions: FormattedAllowedMentions;
   /** The command to run when an unknown command is used. */
@@ -74,6 +77,7 @@ export class SlashCreator extends (EventEmitter as any as new () => TypedEventEm
       opts.token = 'Bot ' + opts.token;
     this.client = opts.client;
 
+    this.throttle = opts.throttle || new Keyv();
     // Define default options
     this.options = Object.assign(
       {
@@ -720,7 +724,7 @@ export class SlashCreator extends (EventEmitter as any as new () => TypedEventEm
           }
 
           // Throttle the command
-          const throttle = command.throttle(ctx.user.id);
+          const throttle = await command.throttle(ctx.user.id);
           if (throttle && command.throttling && throttle.usages + 1 > command.throttling.usages) {
             const remaining = (throttle.start + command.throttling.duration * 1000 - Date.now()) / 1000;
             const data = { throttle, remaining };
@@ -955,6 +959,8 @@ export interface SlashCreatorOptions {
   agent?: HTTPS.Agent;
   /** The client to pass to the creator */
   client?: any;
+  /** The keyv instance for handling throttling */
+  throttle?: Keyv;
 }
 
 /** The options for {@link SlashCreator#syncCommands}. */
