@@ -210,10 +210,7 @@ export class SlashCommand<T = any> {
         );
       }
       case 'precommand': {
-        return ctx.send(
-          `The \`${this.commandName}\` command was blocked from running.`,
-          { ephemeral: true }
-        );
+        return ctx.send(`The \`${this.commandName}\` command was blocked from running.`, { ephemeral: true });
       }
       default:
         return null;
@@ -247,7 +244,7 @@ export class SlashCommand<T = any> {
    */
   async throttle(userID: string): Promise<ThrottleObject | null> {
     if (!this.throttling) return null;
-    const key = `${this.commandName}:${userID}`;
+    const key = `slash-create-throttle:${this.commandName}:${userID}`;
     let throttle: ThrottleObject | null = await this._throttles.get(key);
     if (!throttle) {
       throttle = {
