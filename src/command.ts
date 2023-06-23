@@ -10,6 +10,7 @@ import { SlashCreator } from './creator';
 import { oneLine, validateOptions } from './util';
 import { AutocompleteContext } from './structures/interfaces/autocompleteContext';
 import { Permissions } from './structures/permissions';
+import { DeserializedData } from 'keyv';
 
 /** Represents a Discord slash command. */
 export class SlashCommand<T = any> {
@@ -242,19 +243,36 @@ export class SlashCommand<T = any> {
    * @param userID ID of the user to throttle for
    * @private
    */
-  async throttle(userID: string): Promise<ThrottleObject | null> {
-    if (!this.throttling) return null;
+  async throttle(userID: string): Promise<DeserializedData<ThrottleObject> | undefined> {
+    if (!this.throttling) return undefined;
     const key = `slash-create-throttle:${this.commandName}:${userID}`;
-    let throttle: ThrottleObject | null = await this._throttles.get(key);
+    const throttle: DeserializedData<ThrottleObject> | undefined = await this._throttles.get(key, { raw: true });
     if (!throttle) {
-      throttle = {
+      const throttleValue = {
         start: Date.now(),
         usages: 0
       };
-      this._throttles.set(userID, throttle, this.throttling.duration * 1000);
+      this._throttles.set(key, throttleValue, this.throttling.duration * 1000);
     }
 
     return throttle;
+  }
+
+  /**
+   * Updates the throttle object for a user.
+   * @param userID ID of the user to update throttle for
+   * @private
+   */
+  async updateThrottle(userID: string, throttle: DeserializedData<ThrottleObject>) {
+    const key = `slash-create-throttle:${this.commandName}:${userID}`;
+
+    if (throttle.expires) {
+      const ttl = Date.now() - throttle.expires;
+      if (ttl > 0) {
+        return this._throttles.set(key, throttle.value, ttl);
+      }
+    }
+    this._throttles.set(key, throttle.value);
   }
 
   /** Reloads the command. */
@@ -275,7 +293,8 @@ export class SlashCommand<T = any> {
    * Runs the command.
    * @param ctx The context of the interaction
    */
-  async run(ctx: CommandContext): Promise<any> { // eslint-disable-line @typescript-eslint/no-unused-vars, prettier/prettier
+  async run(ctx: CommandContext): Promise<any> {
+    // eslint-disable-line @typescript-eslint/no-unused-vars, prettier/prettier
     throw new Error(`${this.constructor.name} doesn't have a run() method.`);
   }
 
@@ -283,7 +302,8 @@ export class SlashCommand<T = any> {
    * Runs an autocomplete function.
    * @param ctx The context of the interaction
    */
-  async autocomplete(ctx: AutocompleteContext): Promise<any> { // eslint-disable-line @typescript-eslint/no-unused-vars, prettier/prettier
+  async autocomplete(ctx: AutocompleteContext): Promise<any> {
+    // eslint-disable-line @typescript-eslint/no-unused-vars, prettier/prettier
     throw new Error(`${this.constructor.name} doesn't have a autocomplete() method.`);
   }
 

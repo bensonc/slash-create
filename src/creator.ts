@@ -725,13 +725,16 @@ export class SlashCreator extends (EventEmitter as any as new () => TypedEventEm
 
           // Throttle the command
           const throttle = await command.throttle(ctx.user.id);
-          if (throttle && command.throttling && throttle.usages + 1 > command.throttling.usages) {
-            const remaining = (throttle.start + command.throttling.duration * 1000 - Date.now()) / 1000;
+          if (throttle && command.throttling && throttle.value.usages + 1 > command.throttling.usages) {
+            const remaining = (throttle.value.start + command.throttling.duration * 1000 - Date.now()) / 1000;
             const data = { throttle, remaining };
             this.emit('commandBlock', command, ctx, 'throttling', data);
             return command.onBlock(ctx, 'throttling', data);
           }
-          if (throttle) throttle.usages++;
+          if (throttle) {
+            throttle.value.usages++;
+            await command.updateThrottle(ctx.user.id, throttle);
+          }
 
           // Run precommand callback
           if (this.options.precommandCallback) {
