@@ -210,10 +210,7 @@ export class SlashCommand<T = any> {
         );
       }
       case 'precommand': {
-        return ctx.send(
-          `The \`${this.commandName}\` command was blocked from running.`,
-          { ephemeral: true }
-        );
+        return ctx.send(`The \`${this.commandName}\` command was blocked from running.`, { ephemeral: true });
       }
       default:
         return null;
