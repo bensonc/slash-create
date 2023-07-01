@@ -932,7 +932,7 @@ export interface SlashCreatorOptions {
    * Add your own custom handlers to execute before the command is ran.
    * @returns true to continue, otherwise false to stop.
    */
-  precommandCallback?: (command: SlashCommand<any>, ctx: CommandContext) => boolean;
+  precommandCallback?: (command: SlashCommand, ctx: CommandContext) => Promise<boolean> | boolean;
   /** Whether to disable automatic defer/acknowledge timeouts. */
   disableTimeouts?: boolean;
   /** Whether to enable automatic component timeouts. */
