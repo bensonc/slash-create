@@ -34,6 +34,7 @@ import { ComponentContext } from './structures/interfaces/componentContext';
 import { AutocompleteContext } from './structures/interfaces/autocompleteContext';
 import path from 'path';
 import { ModalInteractionContext } from './structures/interfaces/modalInteractionContext';
+import { MessageOptions } from './structures/interfaces/messageInteraction';
 
 /** The main class for using commands and interactions. */
 export class SlashCreator extends (EventEmitter as any as new () => TypedEventEmitter<SlashCreatorEvents>) {
@@ -732,11 +733,11 @@ export class SlashCreator extends (EventEmitter as any as new () => TypedEventEm
           // Run precommand callback
           if (this.options.precommandCallback) {
             const cb = await this.options.precommandCallback(command, ctx);
-            if (!cb) {
-              // Response was already have been handled by the callback.
-              if (ctx.initiallyResponded && ctx.deferred) return;
-              return command.onBlock(ctx, 'precommand');
+            if (typeof cb !== "boolean") {
+              const data = { response: cb as MessageOptions };
+              return command.onBlock(ctx, 'precommand', data);
             }
+            if (!cb) return command.onBlock(ctx, 'precommand');
           }
 
           // Run the command
@@ -930,9 +931,9 @@ export interface SlashCreatorOptions {
   handleCommandsManually?: boolean;
   /**
    * Add your own custom handlers to execute before the command is ran.
-   * @returns true to continue, otherwise false to stop.
+   * @return {Promise<boolean | MessageOptions>} Whether to stop command execution, or an error message to stop command execution.
    */
-  precommandCallback?: (command: SlashCommand, ctx: CommandContext) => Promise<boolean> | boolean;
+  precommandCallback?: (command: SlashCommand, ctx: CommandContext) => Promise<boolean | MessageOptions>;
   /** Whether to disable automatic defer/acknowledge timeouts. */
   disableTimeouts?: boolean;
   /** Whether to enable automatic component timeouts. */

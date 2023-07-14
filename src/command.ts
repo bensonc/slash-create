@@ -196,6 +196,7 @@ export class SlashCommand<T = any> {
    * @param data Additional data associated with the block.
    * - permission: `response` ({@link string}) to send
    * - throttling: `throttle` ({@link Object}), `remaining` ({@link number}) time in seconds
+   * - precommand: `response` ({@link MessageOptions}) to send
    */
   onBlock(ctx: CommandContext, reason: string, data?: any): any {
     switch (reason) {
@@ -210,6 +211,7 @@ export class SlashCommand<T = any> {
         );
       }
       case 'precommand': {
+        if (data.response) return ctx.send(data.response);
         return ctx.send(`The \`${this.commandName}\` command was blocked from running.`, { ephemeral: true });
       }
       default:
